@@ -25,3 +25,5 @@ directory.
 0. Run `rails server -p $PORT -b $IP` to start the app.  Cloud9 will pop
 up a window showing the URL to visit in your browser to interact with
 the running app.
+
+test
