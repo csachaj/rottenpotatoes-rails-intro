@@ -9,14 +9,20 @@ class MoviesController < ApplicationController
     @movie = Movie.find(id) # look up movie by unique ID
     # will render app/views/movies/show.<extension> by default
   end
-  
-  def getRatings
-    ['G','PG','PG-13','R']                                                            # Enumeration of possible movie ratings
-  end
 
   def index
-    @all_ratings, @titleStyle, @dateStyle = getRatings, nil, nil
-    @selected_ratings = !params[:ratings].nil? ? params[:ratings] : getRatings
+    #flash.keep                                                                       # Instructions said I might need this, but when I tested the corner case it wasn't needed. Here for reference
+                                                                                      # Redirect conditions below, checks instance of params not existing and session params not existing
+    if params[:ratings].nil? and params[:sort_by].nil? and !session[:ratings].nil? and !session[:sort_by].nil?
+      redirect_to movies_path(ratings: session[:ratings], sort_by: session[:sort_by])
+    elsif !session[:sort_by].nil? and params[:sort_by].nil?
+      redirect_to movies_path(sort_by: session[:sort_by], ratings: params[:ratings])
+    elsif !session[:ratings].nil? and params[:ratings].nil?
+      redirect_to movies_path(ratings: session[:ratings], sort_by: params[:sort_by])
+    end
+    
+    @all_ratings = ['G','PG','PG-13','R']                                             # Enumeration of possible movie ratings
+    @selected_ratings = !params[:ratings].nil? ? params[:ratings] : @all_ratings      # Logic to pre-populate checkboxs correctly
     
     query = "Movie"                                                                   # Initialize query build string
     
@@ -27,11 +33,13 @@ class MoviesController < ApplicationController
       query << ".order(title: :asc)"                                                  # Sort the query by title
       @titleStyle = "hilite"                                                          # Apply the "hilite" css class to the title header
     elsif params[:sort_by] == "date"                                                  # Check if the query should be sorted
-      query << ".order(release_date: :desc)"                                          # Sort the query by title
+      query << ".order(release_date: :asc)"                                           # Sort the query by title
       @dateStyle = "hilite"                                                           # Apply the "hilite" css class to the release date header
     end
     
     @movies = eval(query)                                                             # Evaluate query and assign returned value to @movies
+    
+    session[sort_by: params[:sort_by], ratings:  params[:ratings]]                    # Save params to session
   end
 
   def new
