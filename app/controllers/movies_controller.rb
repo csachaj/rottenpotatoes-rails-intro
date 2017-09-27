@@ -9,18 +9,29 @@ class MoviesController < ApplicationController
     @movie = Movie.find(id) # look up movie by unique ID
     # will render app/views/movies/show.<extension> by default
   end
+  
+  def getRatings
+    ['G','PG','PG-13','R']                                                            # Enumeration of possible movie ratings
+  end
 
   def index
-    @movies = Movie.all
-    @titleStyle, @dateStyle = nil
-    sort = params[:sort_by]
-    if sort == "title"
-      @movies = Movie.all.order(title: :desc)
-      @titleStyle = "hilite"
-    elsif sort == "date"
-      @movies = Movie.all.order(release_date: :desc)
-      @dateStyle = "hilite"
+    @all_ratings, @titleStyle, @dateStyle = getRatings, nil, nil
+    @selected_ratings = !params[:ratings].nil? ? params[:ratings] : getRatings
+    
+    query = "Movie"                                                                   # Initialize query build string
+    
+    query << ".where({ rating: params[:ratings]})" unless params[:ratings].nil?       # Check if the query has filters enabled. If so, add them to the query
+    else query << ".all"                                                              # If no filters are used, return all rows
+
+    if params[:sort_by] == "title"                                                    # Check if the query should be sorted
+      query << ".order(title: :asc)"                                                  # Sort the query by title
+      @titleStyle = "hilite"                                                          # Apply the "hilite" css class to the title header
+    elsif params[:sort_by] == "date"                                                  # Check if the query should be sorted
+      query << ".order(release_date: :desc)"                                          # Sort the query by title
+      @dateStyle = "hilite"                                                           # Apply the "hilite" css class to the release date header
     end
+    
+    @movies = eval(query)                                                             # Evaluate query and assign returned value to @movies
   end
 
   def new
