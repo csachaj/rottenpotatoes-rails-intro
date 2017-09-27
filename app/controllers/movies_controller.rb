@@ -39,7 +39,8 @@ class MoviesController < ApplicationController
     
     @movies = eval(query)                                                             # Evaluate query and assign returned value to @movies
     
-    session[sort_by: params[:sort_by], ratings:  params[:ratings]]                    # Save params to session
+    session[:sort_by] = params[:sort_by]                                              # Save sort_by params to session
+    session[:ratings] = params[:ratings]                                              # Save rating params to session
   end
 
   def new
